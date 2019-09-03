@@ -35,7 +35,7 @@ class ParseError(Exception):
         return 'Syntax error in manifest on line %d: %s' % (self.lineno, self.line)
 
 
-def parse(content, strict=False, custom_tags_parser=None):
+def parse(content, strict=False, custom_tags_parser=None, gen_datetime=True):
     '''
     Given a M3U8 playlist content returns a dictionary with all data found
     '''
@@ -87,8 +87,9 @@ def parse(content, strict=False, custom_tags_parser=None):
             _, program_date_time = _parse_simple_parameter_raw_value(line, cast_date_time)
             if not data.get('program_date_time'):
                 data['program_date_time'] = program_date_time
-            state['current_program_date_time'] = program_date_time
             state['program_date_time'] = program_date_time
+            if gen_datetime:
+                state['current_program_date_time'] = program_date_time
 
         elif line.startswith(protocol.ext_x_discontinuity):
             state['discontinuity'] = True

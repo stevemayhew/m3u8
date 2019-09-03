@@ -142,9 +142,9 @@ class M3U8(object):
         ('discontinuity_sequence', 'discontinuity_sequence')
     )
 
-    def __init__(self, content=None, base_path=None, base_uri=None, strict=False, custom_tags_parser=None):
+    def __init__(self, content=None, base_path=None, base_uri=None, strict=False, custom_tags_parser=None, gen_datetime=True):
         if content is not None:
-            self.data = parse(content, strict, custom_tags_parser)
+            self.data = parse(content, strict, custom_tags_parser, gen_datetime)
         else:
             self.data = {}
         self._base_uri = base_uri
