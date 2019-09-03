@@ -36,7 +36,7 @@ class ParseError(Exception):
 
 
 
-def parse(content, strict=False):
+def parse(content, strict=False, gen_datetime=True):
     '''
     Given a M3U8 playlist content returns a dictionary with all data found
     '''
@@ -79,7 +79,8 @@ def parse(content, strict=False):
             _, program_date_time = _parse_simple_parameter_raw_value(line, cast_date_time)
             if not data.get('program_date_time'):
                 data['program_date_time'] = program_date_time
-            state['current_program_date_time'] = program_date_time
+            if gen_datetime:
+                state['current_program_date_time'] = program_date_time
 
         elif line.startswith(protocol.ext_x_discontinuity):
             state['discontinuity'] = True
@@ -137,9 +138,7 @@ def parse(content, strict=False):
             data['is_endlist'] = True
 
         elif line.startswith(protocol.ext_x_map):
-            quoted_parser = remove_quotes_parser('uri')
-            segment_map_info = _parse_attribute_list(protocol.ext_x_map, line, quoted_parser)
-            data['segment_map'] = segment_map_info
+            _parse_segment_map(line, data, state)
 
         elif line.startswith(protocol.ext_x_start):
             attribute_parser = {
@@ -194,6 +193,14 @@ def _parse_extinf(line, data, state, lineno, strict):
         state['segment'] = {}
     state['segment']['duration'] = float(duration)
     state['segment']['title'] = remove_quotes(title)
+
+def _parse_segment_map(line, data, state):
+    quoted_parser = remove_quotes_parser('uri', 'byterange')
+    segment_map_info = _parse_attribute_list(protocol.ext_x_map, line, quoted_parser)
+    if 'segment' not in state:
+        state['segment'] = {}
+
+    state['segment']['segment_map'] = segment_map_info
 
 
 def _parse_ts_chunk(line, data, state):

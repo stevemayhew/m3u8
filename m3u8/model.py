@@ -135,9 +135,9 @@ class M3U8(object):
         ('playlist_type',    'playlist_type')
     )
 
-    def __init__(self, content=None, base_path=None, base_uri=None, strict=False):
+    def __init__(self, content=None, base_path=None, base_uri=None, strict=False, gen_datetime=True):
         if content is not None:
-            self.data = parse(content, strict)
+            self.data = parse(content, strict, gen_datetime)
         else:
             self.data = {}
         self._base_uri = base_uri
@@ -331,18 +331,22 @@ class Segment(BasePathMixin):
     `byterange`
       byterange attribute from EXT-X-BYTERANGE parameter
 
+    `segment_map`
+      attributes from the EXT-X-MAP associated with the segment, if any
+
     `key`
       Key used to encrypt the segment (EXT-X-KEY)
     '''
 
     def __init__(self, uri, base_uri, program_date_time=None, duration=None,
-                 title=None, byterange=None, cue_out=False, discontinuity=False, key=None,
+                 title=None, byterange=None, cue_out=False, discontinuity=False, segment_map=None, key=None,
                  scte35=None, scte35_duration=None, keyobject=None):
         self.uri = uri
         self.duration = duration
         self.title = title
         self.base_uri = base_uri
         self.byterange = byterange
+        self.segment_map = segment_map
         self.program_date_time = program_date_time
         self.discontinuity = discontinuity
         self.cue_out = cue_out
@@ -364,11 +368,18 @@ class Segment(BasePathMixin):
 
         if self.discontinuity:
             output.append('#EXT-X-DISCONTINUITY\n')
-            if self.program_date_time:
-                output.append('#EXT-X-PROGRAM-DATE-TIME:%s\n' %
-                              format_date_time(self.program_date_time))
+
+        if self.program_date_time:
+            output.append('#EXT-X-PROGRAM-DATE-TIME:%s\n' %
+                          format_date_time(self.program_date_time))
         if self.cue_out:
             output.append('#EXT-X-CUE-OUT-CONT\n')
+
+        if self.segment_map:
+            br = self.segment_map.get('byterange')
+            map_br = ',BYTERANGE="%s"' % br if br is not None else ''
+            output.append('#EXT-X-MAP:URI="%s"%s\n' % (self.segment_map['uri'], map_br))
+
         output.append('#EXTINF:%s,' % int_or_float_to_string(self.duration))
         if self.title:
             output.append(quoted(self.title))
