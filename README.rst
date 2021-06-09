@@ -11,6 +11,8 @@
     :target: https://badge.fury.io/py/m3u8
 
 
+Some stupid change
+
 m3u8
 ====
 
