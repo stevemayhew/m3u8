@@ -1,3 +1,5 @@
+Hello! This is a test change.
+
 .. image:: https://travis-ci.org/globocom/m3u8.svg
     :target: https://travis-ci.org/globocom/m3u8
 
